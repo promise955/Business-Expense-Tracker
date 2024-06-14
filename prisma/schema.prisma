@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  email          String           @unique
+  businessname   String?
+  firstname      String?
+  lastname       String?
+  BudgetCategory BudgetCategory[]
+  Expense        Expense[]
+  Item           Item[]
+  ItemGroup      ItemGroup[]
+  Income         Income[]
+  ExpenseGroup   ExpenseGroup[]
+}
+
+model BudgetCategory {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  categoryname String
+  monthyear    DateTime  @db.Date
+  budgetamount Float
+  totalincome  Float
+  totalexpense Float
+  businessname String?
+  userId       String    @db.ObjectId
+  user         User      @relation(fields: [userId], references: [id])
+  deleted      Boolean   @default(false)
+  Expense      Expense[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Income       Income[]
+}
+
+model Expense {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  expensename      String
+  amount           Float
+  total            Float
+  quantity         Int
+  businessname     String?
+  grandtotal       Float
+  date             DateTime       @db.Date
+  itemId           String         @db.ObjectId
+  item             Item           @relation(fields: [itemId], references: [id])
+  budgetCategoryId String         @db.ObjectId
+  budgetCategory   BudgetCategory @relation(fields: [budgetCategoryId], references: [id])
+  user             User?          @relation(fields: [userId], references: [id])
+  itemGroupId      String         @db.ObjectId
+  itemGroup        ItemGroup      @relation(fields: [itemGroupId], references: [id])
+  expenseGroupId   String         @db.ObjectId
+  expenseGroup     ExpenseGroup   @relation(fields: [expenseGroupId], references: [id])
+  userId           String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Item {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  itemname     String
+  businessname String?
+  price        Float
+  itemGroupId  String    @db.ObjectId
+  itemGroup    ItemGroup @relation(fields: [itemGroupId], references: [id])
+  user         User?     @relation(fields: [userId], references: [id])
+  userId       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deleted      Boolean   @default(false)
+  Expense      Expense[]
+}
+
+model ExpenseGroup {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  date         DateTime  @db.Date
+  totalamount  Float
+  businessname String?
+  user         User?     @relation(fields: [userId], references: [id])
+  userId       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Expense      Expense[]
+}
+
+model ItemGroup {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  itemgroupname String
+  user          User?     @relation(fields: [userId], references: [id])
+  userId        String?
+  businessname  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deleted       Boolean   @default(false)
+  items         Item[]
+  Expense       Expense[]
+}
+
+model Income {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  amount           Float
+  incomename       String
+  businessname     String?
+  date             DateTime       @db.Date
+  user             User?          @relation(fields: [userId], references: [id])
+  userId           String?
+  budgetCategoryId String         @db.ObjectId
+  budgetCategory   BudgetCategory @relation(fields: [budgetCategoryId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deleted          Boolean        @default(false)
+}
