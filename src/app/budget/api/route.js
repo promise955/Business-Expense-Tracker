@@ -143,7 +143,7 @@ export async function POST(request) {
 
         const payload = await request.json()
 
-        const { id } = await backendValidation()
+        const { id,businessname } = await backendValidation()
 
         const budgetId = await prisma.budgetCategory.findFirst({
             where: {
@@ -161,7 +161,8 @@ export async function POST(request) {
             data: {
                 ...payload,
                 userId: id,
-                budgetamount: Number(payload.budgetamount)
+                budgetamount: Number(payload.budgetamount),
+                businessname : businessname
             }
         })
 
@@ -175,7 +176,6 @@ export async function POST(request) {
 
 
     } catch (error) {
-
         return new NextResponse(JSON.stringify({ message: 'something went wrong' }), { status: 500 })
     }
 

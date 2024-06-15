@@ -14,7 +14,7 @@ export async function POST(request, response) {
             email: email, password: password,
 
             options: {
-                //emailRedirectTo: 'https://expense-tracker-orpin-eight-21.vercel.app/dashboard',
+                emailRedirectTo: 'https://business-expense-tracker.vercel.app/dashboard',
             },
         })
     

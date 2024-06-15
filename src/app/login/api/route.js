@@ -13,7 +13,7 @@ export async function POST(request) {
         const { error, data: { user } } = await supabase.auth.signInWithPassword({ email: email, password: password })
 
         if (error)return new NextResponse(JSON.stringify({ message: error.message }), { status: 400 })
-           
+        
         const id = await prisma.user.findFirst({
             where: {
                 email: user.email
@@ -22,7 +22,7 @@ export async function POST(request) {
                 id: true
             }
         })
-     
+       
         if (!id) return new NextResponse(JSON.stringify({ message: 'Invalid credentials' }), { status: 400 })
     
         return new Response(JSON.stringify({ message: user }), {

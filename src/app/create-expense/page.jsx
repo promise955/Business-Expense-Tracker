@@ -308,12 +308,12 @@ const CreateExpense = () => {
                 {searchState.results.map((i) => (
                   <li
                     key={i.id}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2 text-gray cursor-pointer hover:bg-gray-100"
                     onClick={() => handleResultSelect({ result: i })}
                   >
                     <div className="flex justify-between">
                       <span>{i.itemname}</span>
-                      <span className="text-gray-500">
+                      <span className="text-gray-900">
                         ₦{numeral(i.price).format("0,0")}
                       </span>
                     </div>
@@ -371,7 +371,7 @@ const CreateExpense = () => {
                                         readOnly
                                         id={`name[${index}]`}
                                         name={`name[${index}]`}
-                                        className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
+                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                                           errors.name && touched.name
                                             ? "border-red-500"
                                             : ""
@@ -410,7 +410,7 @@ const CreateExpense = () => {
                                             value
                                           );
                                         }}
-                                        className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
+                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
                                           errors.price && touched.price
                                             ? "border-red-500"
                                             : ""
@@ -432,7 +432,7 @@ const CreateExpense = () => {
                                           updateValue(e.currentTarget, index)
                                         }
                                         name={`quantity[${index}]`}
-                                        className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
+                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                                           errors.quantity && touched.quantity
                                             ? "border-red-500"
                                             : ""
@@ -451,7 +451,7 @@ const CreateExpense = () => {
                                         readOnly
                                         id={`group[${index}]`}
                                         name={`group[${index}]`}
-                                        className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
+                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                                           errors.group && touched.group
                                             ? "border-red-500"
                                             : ""
@@ -480,7 +480,7 @@ const CreateExpense = () => {
                                             value
                                           );
                                         }}
-                                        className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
+                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
                                           errors.totalRow && touched.totalRow
                                             ? "border-red-500"
                                             : ""
@@ -522,7 +522,7 @@ const CreateExpense = () => {
                                 {...field}
                                 dateFormat="MMMM yyyy"
                                 showMonthYearPicker
-                                className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
+                                className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
                                   errors.date && touched.date
                                     ? "border-red-500"
                                     : ""
@@ -566,7 +566,7 @@ const CreateExpense = () => {
                               errors.date && touched.date
                                 ? "border-red-500"
                                 : "border-gray-300"
-                            } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                            } bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                             disabled={!values.date}
                           >
                             <option
@@ -645,7 +645,7 @@ const CreateExpense = () => {
                               setFieldValue("amount", value);
                             }}
                             placeholder="Enter Amount"
-                            className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
+                            className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                               errors.amount && touched.amount
                                 ? "border-red-500"
                                 : ""
