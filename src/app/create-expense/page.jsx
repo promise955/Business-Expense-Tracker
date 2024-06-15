@@ -341,7 +341,7 @@ const CreateExpense = () => {
             <div className="w-full p-4">
               <div className="bg-white shadow-soft-xl rounded-2xl p-4 relative">
                 <div className="">
-                  <h2 className="text-lg font-semibold mb-4">
+                  <h2 className="text-lg text-gray-900 font-semibold mb-4">
                     Total Expenses Added {expenseItem.name.length}
                   </h2>
                   <Formik
