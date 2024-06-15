@@ -282,7 +282,7 @@ const CreateExpense = () => {
               <input
                 type="text"
                 placeholder="Enter Item Name"
-                className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full text-gray-900 sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 value={searchState.value}
                 onChange={_.debounce(handleSearchChange, 500, {
                   leading: true,
@@ -304,15 +304,15 @@ const CreateExpense = () => {
             </div>
 
             {searchState.results && (
-              <ul className="mt-2 bg-white border border-gray-200 rounded-md shadow-lg">
+              <ul className="mt-2 bg-white  text-gray-900 border border-gray-200 rounded-md shadow-lg">
                 {searchState.results.map((i) => (
                   <li
                     key={i.id}
-                    className="px-4 py-2 text-gray cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2 text-gray-900 cursor-pointer hover:bg-gray-100"
                     onClick={() => handleResultSelect({ result: i })}
                   >
-                    <div className="flex justify-between">
-                      <span>{i.itemname}</span>
+                    <div className="flex justify-between ">
+                      <span className="text-gray-900">{i.itemname}</span>
                       <span className="text-gray-900">
                         ₦{numeral(i.price).format("0,0")}
                       </span>
@@ -349,6 +349,7 @@ const CreateExpense = () => {
                     initialValues={expenseItem || newItem}
                     validationSchema={schema}
                     onSubmit={_saveExpenses}
+                    
                   >
                     {({
                       errors,
@@ -363,7 +364,7 @@ const CreateExpense = () => {
                             values.name
                               .map((_value, index) => (
                                 <div key={index}>
-                                  <div className="mb-4 flex space-x-4">
+                                  <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-x-4">
                                     {/* name */}
                                     <div className="flex-1">
                                       <Field

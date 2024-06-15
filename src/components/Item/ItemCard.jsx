@@ -5,7 +5,7 @@ const ItemCard = ({ item, openDeleteModal, openEditModal }) => {
   return (
     <div>
       <div className="bg-gray-800 rounded-lg shadow-md p-1 w-full mb-1">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div className="flex-1">
             <p className="text-white pl-2  truncate">{item.itemname}</p>
           </div>
