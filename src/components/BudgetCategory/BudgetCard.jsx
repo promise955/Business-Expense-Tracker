@@ -56,7 +56,7 @@ const BudgetCard = ({ budget ,openDeleteModal,openEditModal}) => {
         <div className="flex justify-between">
           <p className="text-lg font-bold text-blue-300">Month</p>
           <p className="text-lg font-semibold text-white">
-            {dayjs(budget.monthyear).format('YYYY-MMM-DD')}
+            {dayjs(budget.monthyear).format('MMMM YYYY')}
           </p>
         </div>
 

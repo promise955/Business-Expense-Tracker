@@ -106,10 +106,27 @@ export async function GET(request, response) {
                     totalamount: true
                 },
                 orderBy: { createdAt: 'desc' },
+               
                 skip: (page - 1) * pageSize,
                 take: pageSize,
             })
 
+            const groupedExpenses = expenses.reduce((acc, group) => {
+                group.Expense.forEach(expense => {
+                  const dateKey = expense.date.toISOString().split('T')[0]; // Simplifying date to YYYY-MM-DD format
+                  if (!acc[dateKey]) {
+                    acc[dateKey] = { date: expense.date, totalAmount: 0, totalQuantity: 0, totalTotal: 0 };
+                  }
+                  acc[dateKey].totalAmount += expense.amount;
+                  acc[dateKey].totalQuantity += expense.quantity;
+                  acc[dateKey].totalTotal += expense.total;
+                });
+                return acc;
+              }, {});
+              
+              const expensesArray = Object.values(groupedExpenses);
+              
+              //console.log(expensesArray);
 
             const totalCount = await prisma.expenseGroup.count({
                 where: {
@@ -131,6 +148,7 @@ export async function GET(request, response) {
                 status: 200
             })
         } catch (error) {
+            console.log(error);
           
             return new NextResponse(JSON.stringify({ message: 'something went wrong' }), { status: 500 })
         }

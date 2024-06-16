@@ -1,8 +1,6 @@
 'use server'
-import { createClient } from "@/utils/supabase/server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from 'next/server'
-import { readUserSession } from "@/lib/action";
 import { backendValidation } from "@/app/auth/confirm/route";
 
 

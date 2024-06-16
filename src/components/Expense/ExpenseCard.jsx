@@ -9,7 +9,7 @@ const ExpenseCard = ({ expense, openExpenseModal }) => {
   
         <div className="flex-1 mb-2 sm:mb-0">
           <p className="text-white">
-            {dayjs(expense.date).format("YYYY-MMM-DD")}
+            {dayjs(expense.date).format("DD-MMMM-YYYY")}
           </p>
         </div>
         <div className="flex-1 mb-2 sm:mb-0">

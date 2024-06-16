@@ -101,7 +101,10 @@ export async function GET(request) {
 
 
         const budgets = await prisma.budgetCategory.findMany({
-            where: { deleted: false, userId: id },
+            where: {   OR: [
+                { deleted: false, userId: id },
+                { deleted: false, businessname: businessname },
+            ],},
             orderBy: { monthyear: 'asc' },
             skip: (page - 1) * pageSize,
             take: pageSize,
@@ -112,7 +115,7 @@ export async function GET(request) {
             where: {
                 OR: [
                     { deleted: false, userId: id },
-                    { deleted: true, businessname: businessname },
+                    { deleted: false, businessname: businessname },
                 ],
             },
         });

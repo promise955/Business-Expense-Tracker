@@ -1,8 +1,7 @@
 'use server'
-import { createClient } from "@/utils/supabase/server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from 'next/server'
-import { readUserSession } from "@/lib/action";
+import { backendValidation } from "@/app/auth/confirm/route";
 
 
 
@@ -15,22 +14,7 @@ export async function DELETE(request) {
         const searchParams = url.searchParams;
 
         const itemId = searchParams.get('id');
-        const userId = searchParams.get('user');
-
-        const { user, error } = await readUserSession()
-
-        if (error) return new NextResponse(JSON.stringify({ message: error.message }), { status: 400 })
-
-        const { id } = await prisma.user.findFirst({
-            where: {
-                email: user.email
-            },
-            select: {
-                id: true
-            }
-        })
-        if (!id) return new NextResponse(JSON.stringify({ message: "Invalid credentials or seesion expired" }), { status: 400 })
-
+        const { id, businessname } = await backendValidation()
         await prisma.itemGroup.update({
             where: { deleted: false, userId: id, id: itemId },
             data: {
@@ -38,8 +22,6 @@ export async function DELETE(request) {
             }
 
         })
-
-
         return new Response(JSON.stringify({ message: 'Deleted Sucessfully' }), {
             headers: {
                 "Content-Type": "application/json"
@@ -58,21 +40,7 @@ export async function PATCH(request) {
 
     try {
         const payload = await request.json()
-        const { user, error } = await readUserSession()
-
-        if (error) return new NextResponse(JSON.stringify({ message: error.message }), { status: 400 })
-
-        const { id } = await prisma.user.findFirst({
-            where: {
-                email: user.email
-            },
-            select: {
-                id: true
-            }
-        })
-        if (!id) return new NextResponse(JSON.stringify({ message: "Invalid credentials or seesion expired" }), { status: 400 })
-
-        
+        const { id, businessname } = await backendValidation()
         const groupId = await prisma.itemGroup.findFirst({
             where: {
                 itemgroupname: payload.itemgroupname
@@ -114,21 +82,8 @@ export async function GET(request) {
         const searchParams = url.searchParams;
         const page = Number(searchParams.get('page')) || 1;
         const pageSize = Number(searchParams.get('pageSize')) || 10;
-        const { user, error } = await readUserSession()
 
-        if (error) return new NextResponse(JSON.stringify({ message: error.message }), { status: 400 })
-
-        const { id, businessname } = await prisma.user.findFirst({
-            where: {
-                email: user.email
-            },
-            select: {
-                id: true,
-                businessname: true
-            }
-        })
-        if (!id) return new NextResponse(JSON.stringify({ message: "Invalid credentials or seesion expired" }), { status: 400 })
-
+        const { id, businessname } = await backendValidation()
         const itemgroups = await prisma.itemGroup.findMany({
             where: {
                 OR: [
@@ -137,7 +92,7 @@ export async function GET(request) {
                         userId: id,
                     },
                     {
-                        deleted: true,
+                        deleted: false,
                         businessname: businessname,
                     },
                 ],
@@ -152,7 +107,7 @@ export async function GET(request) {
             where: {
                 OR: [
                     { deleted: false, userId: id },
-                    { deleted: true, businessname: businessname },
+                    { deleted: false, businessname: businessname },
                 ],
             },
         });
@@ -178,28 +133,10 @@ export async function GET(request) {
 export async function POST(request) {
 
     try {
-        const supabase = createClient()
 
         const payload = await request.json()
 
-        const { error, data: { user } } = await supabase.auth.getUser()
-
-
-        if (error) return new NextResponse(JSON.stringify({ message: "Invalid request" }), { status: 400 })
-
-        const { id, businessname } = await prisma.user.findFirst({
-            where: {
-                email: user.email
-            },
-            select: {
-                id: true,
-                businessname: true
-            }
-        })
-
-        if (!id) return new NextResponse(JSON.stringify({ message: 'Invalid credentials or seesion expired' }), { status: 400 })
-
-
+        const { id, businessname } = await backendValidation()
         const groupId = await prisma.itemGroup.findFirst({
             where: {
                 itemgroupname: payload.itemgroupname
@@ -228,8 +165,7 @@ export async function POST(request) {
 
 
     } catch (error) {
-        console.log(error);
-
+        
         return new NextResponse(JSON.stringify({ message: 'something went wrong' }), { status: 500 })
     }
 

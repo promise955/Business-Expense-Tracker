@@ -521,8 +521,8 @@ const CreateExpense = () => {
                             render={({ field }) => (
                               <ReactDatePicker
                                 {...field}
-                                dateFormat="MMMM yyyy"
-                                showMonthYearPicker
+                               // dateFormat="MMMM yyyy"
+                             
                                 className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
                                   errors.date && touched.date
                                     ? "border-red-500"

@@ -11,7 +11,7 @@ const IncomeCard = ({income, openDeleteModal, openEditModal }) => {
           <p className="text-white pl-2  truncate">{income.incomename}</p>
         </div>
         <div className="flex-1 mb-2 sm:mb-0">
-          <p className="text-white">{dayjs(income.date).format('YYYY-MMM-DD')}</p>
+          <p className="text-white">{dayjs(income.date).format('MMMM YYYY')}</p>
         </div>
         <div className="flex-1 mb-2 sm:mb-0">
           <p className="text-white">{currencyFormatter(income.amount)}</p>
