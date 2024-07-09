@@ -16,6 +16,7 @@ import { readUserSession } from "@/lib/action";
 import { useAppContext } from "@/context/context";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
+import BusinessList from "@/components/Business/BusinessList";
 
 const CreateExpense = () => {
   const router = useRouter();
@@ -26,9 +27,11 @@ const CreateExpense = () => {
     value: "",
   });
   const [loading, setLoading] = useState(false);
-  const { isUser, setUser } = useAppContext();
+  const { currentUser } = useAppContext();
   const [items, setItems] = useState([]);
   const [itemsReload, setItemsReload] = useState(false);
+  const [showBusinessModal, setBusinessModal] = useState(true);
+  const [businessDetails , setBusinessDetails ] = useState(null);
   const [expenseTotal, setExpenseTotal] = useState([]);
   const [isPending, setTransition] = useTransition();
 
@@ -40,6 +43,7 @@ const CreateExpense = () => {
       .min(1, "At least one quantity must be provided"),
     date: Yup.date().required("Required"),
     budgetCategoryId: Yup.string().required("Required"),
+    businessId: Yup.string().required("Business is Required"),
     amount: Yup.number().required("Required").min(1),
   });
 
@@ -57,9 +61,10 @@ const CreateExpense = () => {
     totalRow: [],
     itemId: [],
     itemGroupId: [],
-    amount: "",
+    amount: null,
     date: null,
     budgetCategoryId: null,
+    businessId : businessDetails
   };
   const [newItem, setItem] = useState(defaultVariables);
 
@@ -72,32 +77,35 @@ const CreateExpense = () => {
   useEffect(() => {
     (async () => {
       let isSubscribed = true;
-      fetchItems();
-      getTotal();
+      if(businessDetails){
+        fetchItems(businessDetails);
+        getTotal();
+      }
 
       return () => (isSubscribed = false);
     })();
-  }, [itemsReload]);
+  }, [itemsReload,businessDetails]);
 
-  const fetchBudets = async () => {
+  const fetchBudets = async (businessDetails) => {
     try {
-      const { budgets } = await DataService.getDataNoAuth("/budget/api");
+      const { budgets } = await DataService.getDataNoAuth(`/create-expense/api?businessId=${businessDetails}&action=getBudgets`);
       setBudgets(budgets);
     } catch (error) {
-      console.log(error);
       toast.error(error);
     }
   };
 
   useEffect(() => {
-    setTransition(async () => await fetchBudets());
-  }, [isUser]);
+    if(businessDetails){
 
-  const fetchItems = async () => {
+      setTransition(async () => await fetchBudets(businessDetails));
+    }
+  }, [currentUser,businessDetails]);
+
+  const fetchItems = async (businessDetails) => {
     try {
       setLoading(true);
-
-      const items = await DataService.getDataNoAuth(`/create-expense/api`);
+      const items = await DataService.getDataNoAuth(`/create-expense/api?businessId=${businessDetails}&action=getItems`);
       setItems(items);
       setItemsReload(false);
       setLoading(false);
@@ -128,7 +136,6 @@ const CreateExpense = () => {
 
       router.replace("/dashboard");
     } catch (error) {
-      console.log("error", error);
       setSubmitting(false);
       toast.warning(error);
     }
@@ -136,11 +143,10 @@ const CreateExpense = () => {
 
   useEffect(() => {
     const getUserAndRedirect = async () => {
-      if (!isUser) {
+      if (!currentUser) {
         try {
           const { user } = await readUserSession();
-          //setUser(user.email);
-          Cookies.set("expense-user", user.email, { expires: 7 });
+
           router.prefetch("/create-expense");
         } catch (error) {
           router.replace("/login");
@@ -149,7 +155,7 @@ const CreateExpense = () => {
     };
 
     getUserAndRedirect();
-  }, [isUser, router]);
+  }, [currentUser, router]);
 
   const handleResultSelect = ({ result }) => {
     let newPrice = 0;
@@ -272,9 +278,19 @@ const CreateExpense = () => {
     getTotal();
   };
 
+  const saveToCookie = ({ date, budgetId }) => {
+    const newExpenseItem = {
+      ...expenseItem,
+      ...(expenseItem.date = date),
+      ...(expenseItem.budgetCategoryId = budgetId),
+    };
+
+    saveItemVariables(newExpenseItem);
+  };
+
   return (
     <>
-      <NavBar isUser={Cookies.get("expense-user")} />
+      <NavBar />
       <div className="w-full px-6 py-6 mx-auto min-h-screen flex flex-col bg-gradient-to-r from-purple-600 to-indigo-600">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <div className="w-full sm:w-auto">
@@ -312,7 +328,9 @@ const CreateExpense = () => {
                     onClick={() => handleResultSelect({ result: i })}
                   >
                     <div className="flex justify-between ">
-                      <span className="text-gray-900">{i.itemname}</span>
+                      <span className="text-gray-900 capitalize">
+                        {i.itemname}
+                      </span>
                       <span className="text-gray-900">
                         ₦{numeral(i.price).format("0,0")}
                       </span>
@@ -332,6 +350,7 @@ const CreateExpense = () => {
             </button>
           </div>
         </div>
+
         {loading ? (
           <Loader />
         ) : expenseItem.name.length == 0 ? (
@@ -349,7 +368,6 @@ const CreateExpense = () => {
                     initialValues={expenseItem || newItem}
                     validationSchema={schema}
                     onSubmit={_saveExpenses}
-                    
                   >
                     {({
                       errors,
@@ -372,7 +390,7 @@ const CreateExpense = () => {
                                         readOnly
                                         id={`name[${index}]`}
                                         name={`name[${index}]`}
-                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
+                                        className={`mt-1 capitalize text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                                           errors.name && touched.name
                                             ? "border-red-500"
                                             : ""
@@ -401,6 +419,7 @@ const CreateExpense = () => {
                                         name={`price[${index}]`}
                                         value={values.price[index]}
                                         thousandSeparator={true}
+                                        disabled={isSubmitting}
                                         min={0}
                                         prefix={"₦"}
                                         onValueChange={(values) => {
@@ -429,6 +448,7 @@ const CreateExpense = () => {
                                         type="number"
                                         min={1}
                                         id={`quantity[${index}]`}
+                                        disabled={isSubmitting}
                                         onChange={(e) =>
                                           updateValue(e.currentTarget, index)
                                         }
@@ -452,7 +472,7 @@ const CreateExpense = () => {
                                         readOnly
                                         id={`group[${index}]`}
                                         name={`group[${index}]`}
-                                        className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
+                                        className={`mt-1 text-gray-900 capitalize focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                                           errors.group && touched.group
                                             ? "border-red-500"
                                             : ""
@@ -521,14 +541,19 @@ const CreateExpense = () => {
                             render={({ field }) => (
                               <ReactDatePicker
                                 {...field}
-                               // dateFormat="MMMM yyyy"
-                             
+                                dateFormat="d MMMM yyyy"
+                                disabled={isSubmitting}
                                 className={`mt-1 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md ${
                                   errors.date && touched.date
                                     ? "border-red-500"
                                     : ""
                                 }`}
                                 selected={values.date}
+                                value={
+                                  values.date
+                                    ? dayjs(values.date).format("DD MMMM YYYY")
+                                    : ""
+                                }
                                 onChange={(value) => {
                                   setFieldValue("date", value);
                                   setFieldValue("budgetCategoryId", null);
@@ -538,6 +563,22 @@ const CreateExpense = () => {
                           />
                           <ErrorMessage
                             name="date"
+                            component="p"
+                            className="text-red-500 text-sm mt-1"
+                          />
+                        </div>
+
+                        <div className="mb-4">
+                      
+                          <Field
+                            id="businessId"
+                            name="businessId"
+                            value={businessDetails}
+                            hidden
+                        
+                          />
+                          <ErrorMessage
+                            name="businessId"
                             component="p"
                             className="text-red-500 text-sm mt-1"
                           />
@@ -558,17 +599,21 @@ const CreateExpense = () => {
                               value.persist();
                               let item = value.target.value;
                               setFieldValue("budgetCategoryId", item);
+                              saveToCookie({
+                                date: values.date,
+                                budgetId: item,
+                              });
                             }}
                             error={
                               touched.budgetCategoryId &&
                               errors.budgetCategoryId
                             }
-                            className={`block w-full mt-1 px-3 py-2 border ${
+                            className={`block w-full mt-1 px-3 py-2 capitalize border ${
                               errors.date && touched.date
                                 ? "border-red-500"
                                 : "border-gray-300"
                             } bg-white text-gray-900 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                            disabled={!values.date}
+                            disabled={!values.date || isSubmitting}
                           >
                             <option
                               value=""
@@ -641,6 +686,7 @@ const CreateExpense = () => {
                             value={values.amount}
                             thousandSeparator={true}
                             min={0}
+                            disabled={isSubmitting}
                             onValueChange={(values) => {
                               const { value } = values;
                               setFieldValue("amount", value);
@@ -680,6 +726,10 @@ const CreateExpense = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {showBusinessModal && (
+          <BusinessList setBusinessModal={setBusinessModal} setBusinessDetails ={setBusinessDetails} />
         )}
       </div>
     </>

@@ -16,7 +16,7 @@ const ItemGroup = () => {
   const router = useRouter();
   const [items, setitems] = useState([]);
   const [loading, setLoading] = useState();
-  const { isUser, setUser } = useAppContext();
+  const { currentUser } = useAppContext();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
@@ -42,11 +42,11 @@ const ItemGroup = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const result = await DataService.getDataNoAuth(
-        `/itemgroup/api?page=${page}&pageSize=${pageSize}`
+      const {itemGroups,totalCount} = await DataService.getDataNoAuth(
+        `/itemgroup/api?action=getItemGroup&page=${page}&pageSize=${pageSize}`
       );
-      setitems(result.itemgroups);
-      setTotalCount(result.totalCount);
+      setitems(itemGroups);
+      setTotalCount(totalCount);
       setLoading(false);
     } catch (error) {
       toast.error(error);
@@ -62,10 +62,9 @@ const ItemGroup = () => {
 
   useEffect(() => {
     const getUserAndRedirect = async () => {
-      if (!isUser) {
+      if (!currentUser) {
         try {
           const { user } = await readUserSession();
-          Cookies.set("expense-user", user.email, { expires: 7 });
           router.prefetch("/itemgroup");
         } catch (error) {
           router.replace("/login");
@@ -74,13 +73,13 @@ const ItemGroup = () => {
     };
 
     getUserAndRedirect();
-  }, [isUser, router]);
+  }, [currentUser, router]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <>
-      <NavBar isUser={Cookies.get("expense-user")} />
+      <NavBar/>
       <div className="w-full px-6 py-6 mx-auto min-h-screen flex flex-col bg-gradient-to-r from-purple-600 to-indigo-600">
         <div className="flex justify-start">
           <div className="w-full">

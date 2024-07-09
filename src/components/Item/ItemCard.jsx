@@ -7,13 +7,16 @@ const ItemCard = ({ item, openDeleteModal, openEditModal }) => {
       <div className="bg-gray-800 rounded-lg shadow-md p-1 w-full mb-1">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div className="flex-1">
-            <p className="text-white pl-2  truncate">{item.itemname}</p>
+            <p className="text-white pl-2 capitalize">{item.itemname}</p>
           </div>
           <div className="flex-1">
-            <p className="text-white ">{item.itemGroup.itemgroupname}</p>
+            <p className="text-white capitalize">{item.itemGroup.itemgroupname}</p>
           </div>
           <div className="flex-1">
             <p className="text-white ">{currencyFormatter(item.price)}</p>
+          </div>
+          <div className="flex-1">
+            <p className="text-white capitalize">{item.business.businessname}</p>
           </div>
           <div className="space-x-2">
             <button

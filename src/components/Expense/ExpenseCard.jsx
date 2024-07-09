@@ -13,6 +13,11 @@ const ExpenseCard = ({ expense, openExpenseModal }) => {
           </p>
         </div>
         <div className="flex-1 mb-2 sm:mb-0">
+          <p className="text-white capitalize">
+            {expense.business.businessname}
+          </p>
+        </div>
+        <div className="flex-1 mb-2 sm:mb-0">
           <p className="text-white">{currencyFormatter(expense.totalamount)}</p>
         </div>
         <div className="space-x-2 flex">

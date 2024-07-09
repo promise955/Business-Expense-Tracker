@@ -5,55 +5,54 @@ import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Link from "next/link";
-
-import { useRouter } from "next/navigation";
 import DataService from "@/lib/fetch";
+import { useRouter } from "next/navigation";
+import { useAppContext } from "@/context/context";
 
-const Register = () => {
+
+const PartnerRegister = () => {
+
   const router = useRouter();
-  const initialValues = {
-    email: "",
-    password: "",
-    businessname: "",
-    companyname: "",
-  };
-  const validationSchema = Yup.object().shape({
-    email: Yup.string().email("Invalid email").required("Email Required"),
-    businessname: Yup.string()
-      .min(3, "Business name must be at least 3 letter")
-      .required("Business Name is Required"),
-    companyname: Yup.string()
-      .min(3, "Company name must be at least 3 letter")
-      .required("Company Name is Required"),
-    password: Yup.string()
-      .required("Password is required")
-      .min(8, "Password must be at least 8 characters")
-      .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-      .matches(/[0-9]/, "Password must contain at least one number")
-      .matches(
-        /[@$!%*?&]/,
-        "Password must contain at least one special character (@$!%*?&)"
-      )
-      .matches(/^\S*$/, "Password must not contain spaces"),
-    confirmpassword: Yup.string()
-      .oneOf([Yup.ref("password"), null], "Passwords must match")
-      .required("Confirm Password is required"),
-  });
+  
+const initialValues = {
+  email: "",
+  businesscode: "",
+  password: "",
+  confirmpassword: "",
+};
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    setSubmitting(true);
-    try {
-      const message = await DataService.postDataNoAuth("/register/api", values);
-      router.push("/verifyEmail");
-      toast.success(message);
-      setInterval(() => setSubmitting(false), 3000);
-    } catch (error) {
-      setSubmitting(false);
-      return toast.error(error);
-    }
-  };
+const validationSchema = Yup.object().shape({
+  email: Yup.string().email("Invalid email").required("Required"),
+  password : Yup.string()
+  .required("Password is required")
+  .min(8, "Password must be at least 8 characters")
+  .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+  .matches(/[0-9]/, "Password must contain at least one number")
+  .matches(/[@$!%*?&]/, "Password must contain at least one special character (@$!%*?&)")
+  .matches(/^\S*$/, "Password must not contain spaces"),
+  confirmpassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Passwords must match")
+    .required("Confirm Password is required"),
+  businesscode: Yup.string().min(8,'Businesscode contains 8 characters').required("Business Code is Required"),
+});
 
+const handleSubmit = async (values, { setSubmitting }) => {
+  setSubmitting(true);
+  try {
+    const message = await DataService.postDataNoAuth(
+      "/partner-register/api",
+      values
+    );
+     router.push("/verifyEmail");
+   setSubmitting(false);
+    toast.success(message);
+  } catch (error) {
+    setSubmitting(false);
+
+    return toast.error(error);
+  }
+};
   return (
     <div className="flex justify-center  text-gray-800 items-center h-screen bg-gradient-to-r from-purple-600 to-indigo-600">
       <Link
@@ -86,7 +85,7 @@ const Register = () => {
         />
         <Formik
           initialValues={initialValues}
-          validationSchema={validationSchema}
+         validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
@@ -95,7 +94,7 @@ const Register = () => {
                 type="email"
                 name="email"
                 placeholder="Email"
-                disabled={isSubmitting}
+               disabled={isSubmitting}
                 className="w-full mb-4 px-4 py-2 border rounded-lg"
                 required
               />
@@ -104,38 +103,24 @@ const Register = () => {
                 component="div"
                 className="text-red-500"
               />
-
               <Field
                 type="text"
-                name="companyname"
-                disabled={isSubmitting}
-                placeholder="Company Name"
+                name="businesscode"
+               disabled={isSubmitting}
+                placeholder="Enter Business Code"
                 className="w-full mb-4 px-4 py-2 border rounded-lg"
                 required
               />
               <ErrorMessage
-                name="companyname"
-                component="div"
-                className="text-red-500"
-              />
-              <Field
-                type="text"
-                name="businessname"
-                disabled={isSubmitting}
-                placeholder="Business Name"
-                className="w-full mb-4 px-4 py-2 border rounded-lg"
-                required
-              />
-              <ErrorMessage
-                name="businessname"
+                name="businesscode"
                 component="div"
                 className="text-red-500"
               />
 
               <Field
                 type="password"
-                disabled={isSubmitting}
                 name="password"
+               disabled={isSubmitting}
                 placeholder="Password"
                 className="w-full mb-4 px-4 py-2 border rounded-lg"
                 required
@@ -145,11 +130,10 @@ const Register = () => {
                 component="div"
                 className="text-red-500"
               />
-
               <Field
                 type="password"
                 name="confirmpassword"
-                disabled={isSubmitting}
+               disabled={isSubmitting}
                 placeholder="Confirm Password"
                 className="w-full mb-4 px-4 py-2 border rounded-lg"
                 required
@@ -175,10 +159,10 @@ const Register = () => {
                   Login
                 </Link>
                 <Link
-                  href={"/partner-register"}
+                  href={"/register"}
                   className="block hover:text-blue-500 underline"
                 >
-                  Join a Company
+                  Create a Company
                 </Link>
               </div>
             </Form>
@@ -189,4 +173,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default PartnerRegister;

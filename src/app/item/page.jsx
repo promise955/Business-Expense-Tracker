@@ -18,7 +18,7 @@ const Item = () => {
   const router = useRouter();
   const [items, setitems] = useState([]);
   const [loading, setLoading] = useState();
-  const { isUser, setUser } = useAppContext();
+  const { currentUser } = useAppContext();
   const [selectedItem, setSelecteditem] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -44,11 +44,12 @@ const Item = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const result = await DataService.getDataNoAuth(
-        `/item/api?page=${page}&pageSize=${pageSize}`
+      const { items, totalCount } = await DataService.getDataNoAuth(
+        `/item/api?action=getItems&page=${page}&pageSize=${pageSize}`
       );
-      setitems(result.items);
-      setTotalCount(result.totalCount);
+
+      setitems(items);
+      setTotalCount(totalCount);
       setLoading(false);
     } catch (error) {
       toast.error(error);
@@ -63,10 +64,10 @@ const Item = () => {
 
   useEffect(() => {
     const getUserAndRedirect = async () => {
-      if (!isUser) {
+      if (!currentUser) {
         try {
           const { user } = await readUserSession();
-          Cookies.set("expense-user", user.email, { expires: 7 });
+
           router.prefetch("/item");
         } catch (error) {
           router.replace("/login");
@@ -75,13 +76,13 @@ const Item = () => {
     };
 
     getUserAndRedirect();
-  }, [isUser, router]);
+  }, [currentUser, router]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <>
-      <NavBar isUser={Cookies.get("expense-user")} />
+      <NavBar />
       <div className="w-full px-6 py-6 mx-auto min-h-screen flex flex-col bg-gradient-to-r from-purple-600 to-indigo-600">
         <div className="flex justify-start">
           <div className="w-full">
@@ -112,8 +113,7 @@ const Item = () => {
                   openEditModal={openEditModal}
                 />
               ))}
-              <Pagination  page={page} setPage={setPage} totalPages={totalPages}/>
-     
+            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
           </div>
         )}
 

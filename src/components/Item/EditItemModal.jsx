@@ -10,13 +10,31 @@ const EditItemModal = ({ updatedItem, onClose }) => {
 
     const [itemgroups, setItemgroups] = useState([]);
     const [isPending, setTransition] = useTransition();
+
+    const [businesses, setBusiness] = useState([]);
+
+    const fetchBusiness = async () => {
+      try {
+        const { businesses } = await DataService.getDataNoAuth(
+          "/itemgroup/api?action=getBusinessByRole"
+        );
+        setBusiness(businesses);
+      } catch (error) {
+        toast.error(error);
+      }
+    };
+  
+    useEffect(() => {
+      setTransition(async () => await fetchBusiness());
+    }, []);
   
     const fetchItemGroups = async () => {
       try {
-        const response = await DataService.getDataNoAuth("/itemgroup/api");
-        setItemgroups(response.itemgroups);
+        const response = await DataService.getDataNoAuth(
+          `/itemgroup/api?action=getItemGroup`
+        );
+        setItemgroups(response.itemGroups);
       } catch (error) {
-
         toast.error(error);
       }
     };
@@ -52,7 +70,9 @@ const EditItemModal = ({ updatedItem, onClose }) => {
   const newItem = {
     itemname: null,
     price: null,
-    itemGroupId: null
+    itemGroupId: null,
+    businessId: null
+    
   };
 
   const validationSchema = Yup.object().shape({
@@ -60,6 +80,7 @@ const EditItemModal = ({ updatedItem, onClose }) => {
     price: Yup.number().required("Price is required")
     .min(1, "Price must be greater than or equal to 0"),
     itemGroupId: Yup.string().required("Item Group is required"),
+    businessId: Yup.string().required("Business is required"),
 
   });
 
@@ -85,6 +106,7 @@ const EditItemModal = ({ updatedItem, onClose }) => {
                   type="text"
                   id="itemname"
                   name="itemname"
+                  disabled={isSubmitting}
                   className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                     errors.itemname && touched.itemname
                       ? "border-red-500"
@@ -109,6 +131,7 @@ const EditItemModal = ({ updatedItem, onClose }) => {
                   name={`price`}
                   value={values.price}
                   thousandSeparator={true}
+                  disabled={isSubmitting}
                   min={0}
                   prefix={"₦"}
                   onValueChange={(values) => {
@@ -127,6 +150,48 @@ const EditItemModal = ({ updatedItem, onClose }) => {
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
+
+              
+              <div className="mb-4">
+                <label
+                  htmlFor="businessId"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Select Business
+                </label>
+                <Field
+                  as="select"
+                  name="businessId"
+                  value={values.businessId || ""}
+                  onChange={(value) => {
+                    value.persist();
+                    let item = value.target.value;
+                    setFieldValue("businessId", item);
+                  }}
+                  error={touched.businessId && errors.businessId}
+                  className={`block w-full mt-1 px-3 py-2 border ${
+                    errors.businessId && touched.businessId
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10`}
+                  disabled={isSubmitting}
+                >
+                  <option value="" disabled defaultValue hidden></option>
+                  {businesses
+                    ? businesses.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.businessname}
+                        </option>
+                      ))
+                    : null}
+                </Field>
+
+                <ErrorMessage
+                  name="businessId"
+                  component="p"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
     
               <div className="mb-4">
                 <label
@@ -138,6 +203,7 @@ const EditItemModal = ({ updatedItem, onClose }) => {
                 <Field
                   as="select"
                   name="itemgroup"
+               
                   value={values.itemGroupId || ''}
                   onChange={(value) => {
                     value.persist();
@@ -150,21 +216,30 @@ const EditItemModal = ({ updatedItem, onClose }) => {
                       ? "border-red-500"
                       : "border-gray-300"
                   } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                  disabled={!values.itemname}
+                  disabled={!values.itemname || isSubmitting}
                 >
                   <option value="" disabled defaultValue hidden></option>
 
                   {itemgroups
-                    ? itemgroups.map((item) => (
+                    ? 
+                    itemgroups.filter((item) => {
+                
+                      return (
+                        item.businessId === values.businessId
+                      )
+                    })
+                    .map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.itemgroupname}
                           </option>
                         ))
                     : null}
                 </Field>
-                {!values.itemname && (
+          
+
+                {!values.businessId && (
                   <p className="text-red-500 text-sm mt-1">
-                    Item must be created first
+                    Business must be selected first
                   </p>
                 )}
           

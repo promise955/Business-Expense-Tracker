@@ -9,8 +9,24 @@ import { useAppContext } from "@/context/context";
 import dayjs from "dayjs";
 
 const EditIncomeModal = ({ updatedIncome, onClose }) => {
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setTransition] = useTransition();
   const [budgets, setBudgets] = useState([]);
+  const [businesses, setBusiness] = useState([]);
+
+  const fetchBusiness = async () => {
+    try {
+      const { businesses } = await DataService.getDataNoAuth(
+        "/itemgroup/api?action=getBusinessByRole"
+      );
+      setBusiness(businesses);
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  useEffect(() => {
+    setTransition(async () => await fetchBusiness());
+  }, []);
 
   const fetchBudets = async () => {
     try {
@@ -21,8 +37,9 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
     }
   };
 
+  
   useEffect(() => {
-    startTransition(async () => await fetchBudets());
+    setTransition(async () => await fetchBudets());
   }, []);
 
   const newIncome = {
@@ -30,6 +47,7 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
     amount: null,
     date: null,
     budgetCategoryId: null,
+    businessId: null
   };
 
   const validationSchema = Yup.object().shape({
@@ -39,6 +57,7 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
       .min(1, "Amount must be greater than or equal to 0"),
     budgetCategoryId: Yup.string().required("Category is required"),
     date: Yup.date().required("Date is required"),
+    businessId: Yup.string().required("Business is required"),
   });
 
   const handleSubmit = async (values, { setSubmitting }) => {
@@ -78,7 +97,7 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex  text-gray-800 justify-center items-center">
       <div className="bg-white rounded-lg shadow-md p-8 w-4/5 max-w-md">
-        <h2 className="text-lg font-semibold mb-4">Add Expense</h2>
+        <h2 className="text-lg font-semibold mb-4">Add Income</h2>
         <Formik
           initialValues={updatedIncome || newIncome}
           validationSchema={validationSchema}
@@ -97,6 +116,7 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                   type="text"
                   id="incomename"
                   name="incomename"
+                  disabled={isSubmitting}
                   className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10${
                     errors.incomename && touched.incomename
                       ? "border-red-500"
@@ -122,6 +142,7 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                   value={values.amount}
                   thousandSeparator={true}
                   min={0}
+                  disabled={isSubmitting}
                   prefix={"₦"}
                   onValueChange={(values) => {
                     const { value } = values;
@@ -155,6 +176,7 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                     <ReactDatePicker
                       {...field}
                       dateFormat="MMMM yyyy"
+                      disabled={isSubmitting}
                       showMonthYearPicker
                       className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10${
                         errors.date && touched.date ? "border-red-500" : ""
@@ -178,6 +200,50 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                 />
               </div>
 
+    
+              
+              <div className="mb-4">
+                <label
+                  htmlFor="businessId"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Select Business
+                </label>
+                <Field
+                  as="select"
+                  name="businessId"
+                  value={values.businessId || ""}
+                  onChange={(value) => {
+                    value.persist();
+                    let item = value.target.value;
+                    setFieldValue("businessId", item);
+                  }}
+                  error={touched.businessId && errors.businessId}
+                  className={`block w-full mt-1 px-3 py-2 border ${
+                    errors.businessId && touched.businessId
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10`}
+                  disabled={isSubmitting}
+                >
+                  <option value="" disabled defaultValue hidden></option>
+                  {businesses
+                    ? businesses.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.businessname}
+                        </option>
+                      ))
+                    : null}
+                </Field>
+
+                <ErrorMessage
+                  name="businessId"
+                  component="p"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+
+
               <div className="mb-4">
                 <label
                   htmlFor="budgetCategoryId"
@@ -194,13 +260,14 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                     let item = value.target.value;
                     setFieldValue("budgetCategoryId", item);
                   }}
+                 
                   error={touched.budgetCategoryId && errors.budgetCategoryId}
                   className={`block w-full mt-1 px-3 py-2 border ${
                     errors.date && touched.date
                       ? "border-red-500"
                       : "border-gray-300"
                   } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10`}
-                  disabled={!values.date}
+                  disabled={!values.date ||  isSubmitting}
                 >
                   <option value="" disabled defaultValue hidden></option>
                   {values.date && budgets
@@ -212,6 +279,9 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                             itemDate.year() === dayjs(values.date).year()
                           );
                         })
+                        .filter((item) => {
+                          return( item.businessId === values.businessId)
+                        })
                         .map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.categoryname}
@@ -222,6 +292,11 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                 {!values.date && (
                   <p className="text-red-500 text-sm mt-1">
                     Expense date must be selected first before budget category
+                  </p>
+                )}
+                {!values.businessId && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select Business
                   </p>
                 )}
                 {values.date &&
@@ -242,6 +317,8 @@ const EditIncomeModal = ({ updatedIncome, onClose }) => {
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
+
+
 
               <div className="flex justify-end">
                 <button

@@ -8,7 +8,10 @@ const IncomeCard = ({income, openDeleteModal, openEditModal }) => {
     <div className="bg-gray-800 rounded-lg shadow-md p-1 w-full mb-1">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div className="flex-1  mb-2 sm:mb-0">
-          <p className="text-white pl-2  truncate">{income.incomename}</p>
+          <p className="text-white pl-2 capitalize">{income.incomename}</p>
+        </div>
+        <div className="flex-1  mb-2 sm:mb-0">
+          <p className="text-white pl-2 capitalize">{income.business.businessname}</p>
         </div>
         <div className="flex-1 mb-2 sm:mb-0">
           <p className="text-white">{dayjs(income.date).format('MMMM YYYY')}</p>

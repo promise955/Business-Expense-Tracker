@@ -14,9 +14,10 @@ import Loader from "@/components/Layout/Loader";
 import Pagination from "@/components/Layout/Pagination";
 import ExpenseView from "@/components/Expense/ExpenseView";
 
+
 const Dashboard = () => {
   const router = useRouter();
-  const { isUser, setUser } = useAppContext();
+  const { currentUser, setUser } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [expenseModal, setExpenseModal] = useState(false);
   const [expenses, setExpenses] = useState([]);
@@ -57,31 +58,27 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+
     const getUserAndRedirect = async () => {
-      setLoading(true);
-      if (!isUser) {
+      if (!currentUser.email) {
         try {
           const { user } = await readUserSession();
-          // setUser(user.email);
-          Cookies.set("expense-user", user.email, { expires: 7 });
 
-          setLoading(false);
+          router.prefetch("/");
         } catch (error) {
           router.replace("/login");
         }
-      } else if (isUser) {
-        location.reload();
       }
     };
 
     getUserAndRedirect();
-  }, [isUser, router]);
+  }, [router,currentUser]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <>
-      <NavBar isUser={Cookies.get("expense-user")} />
+      <NavBar />
       <div className="w-full px-6 py-6 mx-auto min-h-screen flex flex-col bg-gradient-to-r from-purple-600 to-indigo-600">
         <div className="flex justify-start">
           <div className="w-full">
@@ -108,7 +105,11 @@ const Dashboard = () => {
             <div>
               {expenses?.length > 0 &&
                 expenses?.map((expense, index) => (
-                  <ExpenseCard expense={expense} key={index} openExpenseModal={openExpenseModal} />
+                  <ExpenseCard
+                    expense={expense}
+                    key={index}
+                    openExpenseModal={openExpenseModal}
+                  />
                 ))}
               <Pagination
                 page={page}

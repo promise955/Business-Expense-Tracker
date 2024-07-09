@@ -10,15 +10,94 @@ datasource db {
 model User {
   id             String           @id @default(auto()) @map("_id") @db.ObjectId
   email          String           @unique
-  businessname   String?
+  password       String
   firstname      String?
   lastname       String?
+  deleted        Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   BudgetCategory BudgetCategory[]
   Expense        Expense[]
   Item           Item[]
   ItemGroup      ItemGroup[]
   Income         Income[]
   ExpenseGroup   ExpenseGroup[]
+  userRoles      UserRole[]
+  Company        Company[]
+  Partner        Partner[]
+}
+
+model Company {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  companyname    String           @unique
+  companyownerId String           @db.ObjectId
+  user           User             @relation(fields: [companyownerId], references: [id])
+  createdAt      DateTime         @default(now())
+  deleted        Boolean          @default(false)
+  updatedAt      DateTime         @updatedAt
+  Business       Business[]
+  Partner        Partner[]
+  BudgetCategory BudgetCategory[]
+  Expense        Expense[]
+  Item           Item[]
+  ExpenseGroup   ExpenseGroup[]
+  ItemGroup      ItemGroup[]
+  Income         Income[]
+}
+
+model Business {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  businessname   String           @unique
+  businesscode   String?          @unique
+  expired        DateTime?        @db.Date
+  companyId      String           @db.ObjectId
+  company        Company          @relation(fields: [companyId], references: [id])
+  createdAt      DateTime         @default(now())
+  deleted        Boolean          @default(false)
+  updatedAt      DateTime         @updatedAt
+  Partner        Partner[]
+  BudgetCategory BudgetCategory[]
+  Expense        Expense[]
+  Item           Item[]
+  ExpenseGroup   ExpenseGroup[]
+  ItemGroup      ItemGroup[]
+  Income         Income[]
+}
+
+model Partner {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  approved   Boolean  @default(false)
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  companyId  String   @db.ObjectId
+  company    Company  @relation(fields: [companyId], references: [id])
+  businessId String   @db.ObjectId
+  business   Business @relation(fields: [businessId], references: [id])
+  createdAt  DateTime @default(now())
+  deleted    Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+}
+
+model Role {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String     @unique
+  deleted   Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  userRoles UserRole[]
+}
+
+model UserRole {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  roleId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, roleId], name: "userRole_unique")
 }
 
 model BudgetCategory {
@@ -28,14 +107,17 @@ model BudgetCategory {
   budgetamount Float
   totalincome  Float?
   totalexpense Float?
-  businessname String?
-  userId       String    @db.ObjectId
-  user         User      @relation(fields: [userId], references: [id])
+  company      Company   @relation(fields: [companyId], references: [id])
+  companyId    String    @db.ObjectId
+  business     Business  @relation(fields: [businessId], references: [id])
+  businessId   String    @db.ObjectId
   deleted      Boolean   @default(false)
   Expense      Expense[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   Income       Income[]
+  User         User?     @relation(fields: [userId], references: [id])
+  userId       String?   @db.ObjectId
 }
 
 model Expense {
@@ -44,74 +126,90 @@ model Expense {
   amount           Float
   total            Float
   quantity         Int
-  businessname     String?
   grandtotal       Float
   date             DateTime       @db.Date
   itemId           String         @db.ObjectId
   item             Item           @relation(fields: [itemId], references: [id])
   budgetCategoryId String         @db.ObjectId
   budgetCategory   BudgetCategory @relation(fields: [budgetCategoryId], references: [id])
-  user             User?          @relation(fields: [userId], references: [id])
+  company          Company        @relation(fields: [companyId], references: [id])
+  companyId        String         @db.ObjectId
+  business         Business       @relation(fields: [businessId], references: [id])
+  businessId       String         @db.ObjectId
   itemGroupId      String         @db.ObjectId
   itemGroup        ItemGroup      @relation(fields: [itemGroupId], references: [id])
   expenseGroupId   String         @db.ObjectId
   expenseGroup     ExpenseGroup   @relation(fields: [expenseGroupId], references: [id])
-  userId           String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?  @db.ObjectId
 }
 
 model Item {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  itemname     String
-  businessname String?
-  price        Float
-  itemGroupId  String    @db.ObjectId
-  itemGroup    ItemGroup @relation(fields: [itemGroupId], references: [id])
-  user         User?     @relation(fields: [userId], references: [id])
-  userId       String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deleted      Boolean   @default(false)
-  Expense      Expense[]
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  itemname    String
+  price       Float
+  itemGroupId String    @db.ObjectId
+  itemGroup   ItemGroup @relation(fields: [itemGroupId], references: [id])
+  company     Company   @relation(fields: [companyId], references: [id])
+  companyId   String    @db.ObjectId
+  business    Business  @relation(fields: [businessId], references: [id])
+  businessId  String    @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deleted     Boolean   @default(false)
+  Expense     Expense[]
+  User        User?     @relation(fields: [userId], references: [id])
+  userId      String?   @db.ObjectId
 }
 
 model ExpenseGroup {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  date         DateTime  @db.Date
-  totalamount  Float
-  businessname String?
-  user         User?     @relation(fields: [userId], references: [id])
-  userId       String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  Expense      Expense[]
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  date        DateTime  @db.Date
+  totalamount Float
+  company     Company   @relation(fields: [companyId], references: [id])
+  companyId   String    @db.ObjectId
+  business    Business  @relation(fields: [businessId], references: [id])
+  businessId  String    @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Expense     Expense[]
+  User        User?     @relation(fields: [userId], references: [id])
+  userId      String?   @db.ObjectId
 }
 
 model ItemGroup {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   itemgroupname String
-  user          User?     @relation(fields: [userId], references: [id])
-  userId        String?
-  businessname  String?
+  companyId     String    @db.ObjectId
+  company       Company   @relation(fields: [companyId], references: [id])
+  businessId    String    @db.ObjectId
+  business      Business  @relation(fields: [businessId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deleted       Boolean   @default(false)
   items         Item[]
   Expense       Expense[]
+  User          User?     @relation(fields: [userId], references: [id])
+  userId        String?   @db.ObjectId
 }
 
 model Income {
   id               String         @id @default(auto()) @map("_id") @db.ObjectId
   amount           Float
   incomename       String
-  businessname     String?
   date             DateTime       @db.Date
-  user             User?          @relation(fields: [userId], references: [id])
-  userId           String?
+  company          Company        @relation(fields: [companyId], references: [id])
+  companyId        String         @db.ObjectId
+  business         Business       @relation(fields: [businessId], references: [id])
+  businessId       String         @db.ObjectId
   budgetCategoryId String         @db.ObjectId
   budgetCategory   BudgetCategory @relation(fields: [budgetCategoryId], references: [id])
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   deleted          Boolean        @default(false)
+  User             User?          @relation(fields: [userId], references: [id])
+  userId           String?        @db.ObjectId
 }

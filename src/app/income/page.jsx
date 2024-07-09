@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import DeleteIncomeModal from "@/components/Income/DeleteIncomeModal";
 import EditIncomeModal from "@/components/Income/EditIncomeModal";
 import IncomeCard from "@/components/Income/IncomeCard";
@@ -11,13 +11,13 @@ import { readUserSession } from "@/lib/action";
 import DataService from "@/lib/fetch";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import React, { useState ,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 
 const Income = () => {
   const router = useRouter();
+  const {currentUser} = useAppContext()
   const [incomes, setIncomes] = useState([]);
   const [loading, setLoading] = useState();
-  const { isUser, setUser } = useAppContext();
   const [selectedIncome, setSelectedIncome] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -43,7 +43,7 @@ const Income = () => {
   const fetchIncomes = async () => {
     try {
       setLoading(true);
-      const {incomes,totalCount} = await DataService.getDataNoAuth(
+      const { incomes, totalCount } = await DataService.getDataNoAuth(
         `/income/api?page=${page}&pageSize=${pageSize}`
       );
       setIncomes(incomes);
@@ -62,10 +62,10 @@ const Income = () => {
 
   useEffect(() => {
     const getUserAndRedirect = async () => {
-      if (!isUser) {
+      if (!currentUser.email) {
         try {
           const { user } = await readUserSession();
-          Cookies.set("expense-user", user.email, { expires: 7 });
+
           router.prefetch("/incomes");
         } catch (error) {
           router.replace("/login");
@@ -74,7 +74,7 @@ const Income = () => {
     };
 
     getUserAndRedirect();
-  }, [isUser, router]);
+  }, [currentUser, router]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
   return (
@@ -84,7 +84,9 @@ const Income = () => {
         <div className="flex justify-start">
           <div className="w-full">
             <div className="flex justify-between mb-8">
-              <h5 className="text-2xl font-semibold text-white">Your Incomes</h5>
+              <h5 className="text-2xl font-semibold text-white">
+                Your Incomes
+              </h5>
               <button
                 className="bg-purple-600 hover:bg-black-500 text-white font-semibold px-4 py-2 rounded-lg"
                 onClick={() => openEditModal(null)}
@@ -118,7 +120,10 @@ const Income = () => {
           <DeleteIncomeModal income={selectedIncome} onClose={closeModals} />
         )}
         {editModalOpen && (
-          <EditIncomeModal updatedIncome={selectedIncome} onClose={closeModals} />
+          <EditIncomeModal
+            updatedIncome={selectedIncome}
+            onClose={closeModals}
+          />
         )}
       </div>
     </>

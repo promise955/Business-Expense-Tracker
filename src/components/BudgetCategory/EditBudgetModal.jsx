@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useTransition,useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { NumericFormat } from "react-number-format";
@@ -9,6 +9,23 @@ import dayjs from "dayjs";
 
 
 const EditBudgetModal = ({ updatedBudget, onClose }) => {
+
+  const [businesses, setBusiness] = useState([]);
+  const [isPending, setTransition] = useTransition();
+  const fetchBusiness = async () => {
+    try {
+      const { businesses } = await DataService.getDataNoAuth(
+        "/itemgroup/api?action=getBusinessByRole"
+      );
+      setBusiness(businesses);
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  useEffect(() => {
+    setTransition(async () => await fetchBusiness());
+  }, []);
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
@@ -37,6 +54,7 @@ const EditBudgetModal = ({ updatedBudget, onClose }) => {
     categoryname: null,
     budgetamount: null,
     monthyear: null,
+    businessId: null
   };
 
   const validationSchema = Yup.object().shape({
@@ -45,6 +63,7 @@ const EditBudgetModal = ({ updatedBudget, onClose }) => {
       .required("Amount is required")
       .min(1, "Amount must be greater than or equal to 0"),
     monthyear: Yup.string().required("Month and Year are required"),
+    businessId: Yup.string().required("Business is required"),
   });
 
   return (
@@ -69,6 +88,7 @@ const EditBudgetModal = ({ updatedBudget, onClose }) => {
                   type="text"
                   id="categoryname"
                   name="categoryname"
+                  disabled={isSubmitting}
                   className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10 ${
                     errors.categoryname && touched.categoryname
                       ? "border-red-500"
@@ -94,6 +114,7 @@ const EditBudgetModal = ({ updatedBudget, onClose }) => {
                   value={values.budgetamount}
                   thousandSeparator={true}
                   min={0}
+                  disabled={isSubmitting}
                   prefix={"₦"}
                   onValueChange={(values) => {
                     const { value } = values;
@@ -126,6 +147,7 @@ const EditBudgetModal = ({ updatedBudget, onClose }) => {
                     <ReactDatePicker
                       {...field}
                       dateFormat="MMMM yyyy"
+                      disabled={isSubmitting}
                       showMonthYearPicker
                       className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-lg border-gray-300 rounded-md h-10${
                         errors.monthyear && touched.monthyear
@@ -147,21 +169,67 @@ const EditBudgetModal = ({ updatedBudget, onClose }) => {
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
+       
+              <div className="mb-4">
+                <label
+                  htmlFor="businessId"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Select Business
+                </label>
+                <Field
+                  as="select"
+                  name="businessId"
+                  value={values.businessId || ""}
+                  onChange={(value) => {
+                    value.persist();
+                    let item = value.target.value;
+                    setFieldValue("businessId", item);
+                  }}
+                  error={touched.businessId && errors.businessId}
+                  className={`block w-full mt-1 px-3 py-2 border ${
+                    errors.businessId && touched.businessId
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10`}
+                  disabled={isSubmitting}
+                >
+                  <option value="" disabled defaultValue hidden></option>
+                  {businesses
+                    ? businesses.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.businessname}
+                        </option>
+                      ))
+                    : null}
+                </Field>
+
+                <ErrorMessage
+                  name="businessId"
+                  component="p"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+
               <div className="flex justify-end">
-                <button
+              <button
                   type="button"
                   onClick={onClose}
-                  disabled={isSubmitting}
                   className="mr-2 px-4 py-2 text-sm rounded-md bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  disabled={isPending ? isPending : isSubmitting}
                 >
-                  close
+                  {isPending ? "Close" : isSubmitting ? "Close" : " Close"}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 text-sm rounded-md bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isSubmitting}
+                  disabled={isPending ? isPending : isSubmitting}
                 >
-                  {isSubmitting ? "submitting ...." : "Save"}
+                  {isPending
+                    ? "Please wait.."
+                    : isSubmitting
+                    ? "submitting .."
+                    : " Save"}
                 </button>
               </div>
             </Form>

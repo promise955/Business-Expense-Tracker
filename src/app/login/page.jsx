@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext } from "react";
+import React from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import DataService from "@/lib/fetch";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/context";
+import Cookies from "js-cookie";
 
 const Login = () => {
   const { setUser } = useAppContext();
@@ -25,9 +26,17 @@ const Login = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
     try {
-      const { email } = await DataService.postDataNoAuth("/login/api", values);
+      const { email, companyname, roles } = await DataService.postDataNoAuth(
+        "/login/api",
+        values
+      );
 
-      setUser(email);
+      setUser({ email, companyname, roles });
+      Cookies.set(
+        "user-details",
+        JSON.stringify({ email, companyname, roles }),
+        { expires: 1 }
+      ); //expires in one day
       router.push("/dashboard");
       setInterval(() => setSubmitting(false), 3000);
     } catch (error) {
@@ -77,6 +86,7 @@ const Login = () => {
               <Field
                 type="email"
                 name="email"
+                disabled={isSubmitting}
                 placeholder="Email"
                 className="w-full mb-4 px-4 py-2 border rounded-lg"
                 required
@@ -90,6 +100,7 @@ const Login = () => {
               <Field
                 type="password"
                 name="password"
+                disabled={isSubmitting}
                 placeholder="Password"
                 className="w-full mb-4 px-4 py-2 border rounded-lg"
                 required
@@ -107,12 +118,18 @@ const Login = () => {
               >
                 {isSubmitting ? "Logging in..." : "Login"}
               </button>
-              <div className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
+              <div className="mt-4 p-4 bg-foreground/10 text-foreground text-center flex justify-between">
                 <Link
                   href={"/register"}
                   className="block hover:text-blue-500 underline"
                 >
-                  Create an Account
+                  Create Company
+                </Link>
+                <Link
+                  href={"/partner-register"}
+                  className="block hover:text-blue-500 underline"
+                >
+                  Join a Company
                 </Link>
               </div>
             </Form>

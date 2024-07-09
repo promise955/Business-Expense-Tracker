@@ -9,25 +9,23 @@ import { useRouter } from "next/navigation";
 
 
 export default function Home() {
-
-  const { isUser, setUser } = useAppContext();
+  const { currentUser } = useAppContext();
   const router = useRouter();
 
   useEffect(() => {
     const getUserAndRedirect = async () => {
-      if (!isUser) {
+      if (!currentUser.email) {
         try {
           const { user } = await readUserSession();
-          setUser(user.email);
           router.push("/dashboard");
         } catch (error) {
-          router.replace("/");
+          router.replace("/login");
         }
       }
     };
 
     getUserAndRedirect();
-  }, [isUser, setUser, router]);
+  }, [currentUser, router]);
   return (
     <>
 

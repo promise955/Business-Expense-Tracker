@@ -16,17 +16,16 @@ import NoRecord from "@/components/Layout/NoRecord";
 
 const BudgetCategory = () => {
   const router = useRouter();
+  const { currentUser } = useAppContext();
 
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { isUser, setUser } = useAppContext();
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-
 
   const openEditModal = (budget) => {
     setSelectedBudget(budget);
@@ -46,7 +45,9 @@ const BudgetCategory = () => {
   const fetchBudgets = async () => {
     try {
       setLoading(true);
-      const result = await DataService.getDataNoAuth( `/budget/api?page=${page}&pageSize=${pageSize}`);
+      const result = await DataService.getDataNoAuth(
+        `/budget/api?page=${page}&pageSize=${pageSize}`
+      );
       setBudgets(result.budgets);
       setTotalCount(result.totalCount);
       setLoading(false);
@@ -64,12 +65,11 @@ const BudgetCategory = () => {
 
   useEffect(() => {
     const getUserAndRedirect = async () => {
-      if (!isUser) {
+
+      if (!currentUser.email) {
         try {
           const { user } = await readUserSession();
-          //setUser(user.email);
-          Cookies.set("expense-user", user.email, { expires: 7 });
-          router.prefetch("/budget");
+          router.push("/budget");
         } catch (error) {
           router.replace("/login");
         }
@@ -77,7 +77,7 @@ const BudgetCategory = () => {
     };
 
     getUserAndRedirect();
-  }, [isUser, router]);
+  }, [currentUser, router]);
   const totalPages = Math.ceil(totalCount / pageSize);
   return (
     <>
@@ -100,9 +100,9 @@ const BudgetCategory = () => {
         </div>
 
         {loading ? (
-      <Loader/>
+          <Loader />
         ) : budgets.length === 0 ? (
-         <NoRecord/>
+          <NoRecord />
         ) : (
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">

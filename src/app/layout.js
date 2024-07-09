@@ -6,7 +6,7 @@ import { AppWrapper } from "@/context/context";
 import 'react-datepicker/dist/react-datepicker.css';
 
 export const metadata = {
-  title: "Expense Tracker",
+  title: "Business Expense Tracker",
   description: "Track your expenses",
 };
 
